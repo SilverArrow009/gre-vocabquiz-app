@@ -61,7 +61,7 @@ class QuizPage :
             self.navigate(self.stdscr.getch())
 
 # Read the data from the file
-tsv_file = open("GRE Vocab database.csv", 'r', encoding='utf-8-sig')
+tsv_file = open("vocab_database.csv", 'r', encoding='utf-8-sig')
 
 ####################
 ### SANITY CHECK ###
