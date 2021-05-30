@@ -1,14 +1,10 @@
+#!/usr/bin/python3
+
 import curses
 from os import error
 from tabulate import tabulate
 import random
-
-number_of_questions = int (input("Enter the number of questions you wish to practise : "))
-
-stdscr = curses.initscr()
-(V_MAX, H_MAX) = stdscr.getmaxyx()
-curses.curs_set(0)
-stdscr.keypad(True)
+import re
 
 class QuizPage :
     def __init__(self, stdscr, word, menu_list) :
@@ -66,9 +62,53 @@ class QuizPage :
 
 # Read the data from the file
 tsv_file = open("GRE Vocab database.csv", 'r', encoding='utf-8-sig')
+
+####################
+### SANITY CHECK ###
+####################
+
+faults = []
+uniqueWords = []
+count = 0
+tsvFileLines = tsv_file.readlines()
+for lineIndex in range(len(tsvFileLines)):
+    # fetch the regex
+    # line --> check whether "word<tab>meaning" is followed"
+    # word --> check for duplicates
+    lineRegex = re.search(r'^\w*\b\t\b.*$', tsvFileLines[lineIndex])
+    wordRegex = re.search(r'^\w*\t', tsvFileLines[lineIndex])
+    if(lineRegex is None):
+        faults.append(["DB Syntax", lineIndex, tsvFileLines[lineIndex]])
+        count += 1
+        continue
+    elif(wordRegex.group() in uniqueWords):
+        faults.append(["Duplicate", lineIndex, tsvFileLines[lineIndex]])
+        count += 1
+        continue
+    else:
+        uniqueWords.append(wordRegex.group())
+
+# print all faults in DB
+if(count):
+    print(tabulate(faults, headers = ['Fault', 'Line #', 'Text']))
+# reset character position in file
+tsv_file.seek(0)
+
+
+#################
+### MAIN FLOW ###
+#################
+
+number_of_questions = int (input("Enter the number of questions you wish to practise : "))
+
+stdscr = curses.initscr()
+(V_MAX, H_MAX) = stdscr.getmaxyx()
+curses.curs_set(0)
+stdscr.keypad(True)
+
 vocab_db = {}
 # Populate the dictionary
-for line in tsv_file :
+for line in tsv_file:
     word_pair = line.split(sep='\t')
     vocab_db[word_pair[0]] = word_pair[1]
 tsv_file.close()
